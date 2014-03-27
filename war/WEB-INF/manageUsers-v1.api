@@ -27,7 +27,7 @@
   "methods" : {
     "manageUsers.manageUsersService.isRunning" : {
       "path" : "isRunning",
-      "httpMethod" : "GET",
+      "httpMethod" : "POST",
       "authLevel" : "NONE",
       "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
       "audiences" : [ ],
@@ -42,7 +42,7 @@
     },
     "manageUsers.manageUsersService.stopManagement" : {
       "path" : "stop",
-      "httpMethod" : "GET",
+      "httpMethod" : "POST",
       "authLevel" : "NONE",
       "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
       "audiences" : [ ],
@@ -57,7 +57,7 @@
     },
     "manageUsers.manageUsersService.startManagement" : {
       "path" : "start",
-      "httpMethod" : "GET",
+      "httpMethod" : "POST",
       "authLevel" : "NONE",
       "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
       "audiences" : [ ],

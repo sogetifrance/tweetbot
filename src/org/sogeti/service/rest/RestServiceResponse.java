@@ -1,5 +1,8 @@
 package org.sogeti.service.rest;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class RestServiceResponse {
 	public String nomService;
     public Boolean serviceRuning;
@@ -8,6 +11,7 @@ public class RestServiceResponse {
         this.nomService = nomService;
         this.serviceRuning = serviceRuning;
     }
+    
 
 	public String getNomService() {
 		return nomService;

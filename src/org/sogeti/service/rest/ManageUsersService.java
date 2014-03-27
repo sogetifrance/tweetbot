@@ -1,6 +1,12 @@
 package org.sogeti.service.rest;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadFactory;
+
+import org.sogeti.bo.UserBean;
+
+import twitter4j.User;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
@@ -13,42 +19,115 @@ import com.google.appengine.api.ThreadManager;
 		)
 public class ManageUsersService {
 	
-	private boolean mustContinue=false;
+	private boolean isStarted=false;
+	private Map<String,UserBean> mapFriendUserBean;
+	private List<Long> followersIdList;
 
+	 
+	private void traitementPrincipal(){
+		init();
+		clean();
+	}
+	
+	
+	private void init(){
+		//TODO
+	}
+	
+	private void clean(){
+		//TODO
+	}
+	
+	private void maj(){
+		//TODO
+	}
+	
+	private void findNewFriends(User friend){
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	@ApiMethod(
 	        path = "start",
-	        httpMethod = HttpMethod.GET
+	        httpMethod = HttpMethod.POST
+	        
 	)
 	public RestServiceResponse startManagement(){
-		
-		this.mustContinue=true;
-		Runnable manage = new Runnable(){
-		    public void run() {
-		    	manageFriends();
-		    }
-		};
+		if(!this.isStarted){
+			this.isStarted=true;
+			try {
+				Runnable manage = new Runnable(){
+				    public void run() {
+				    	manageFriends();
+				    }
+				};
 
-		ThreadFactory threadFactory = ThreadManager.backgroundThreadFactory();
-		Thread thread = threadFactory.newThread(manage);
-		thread.start();
-		return new RestServiceResponse("startManagement", this.mustContinue);
+				ThreadFactory threadFactory = ThreadManager.backgroundThreadFactory();
+				Thread thread = threadFactory.newThread(manage);
+				thread.start();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				this.isStarted=false;
+			}
+		}
+		return new RestServiceResponse("startManagement", this.isStarted);
 	}
 	
 	@ApiMethod(
 	        path = "stop",
-	        httpMethod = HttpMethod.GET
+	        httpMethod = HttpMethod.POST
 	)
 	public RestServiceResponse stopManagement(){
-		this.mustContinue=false;
-		return new RestServiceResponse("stopManagement", this.mustContinue);
+		
+		if(this.isStarted){
+			this.isStarted=false;
+		}
+		return new RestServiceResponse("stopManagement", this.isStarted);
 	}
 	
 	@ApiMethod(
 	        path = "isRunning",
-	        httpMethod = HttpMethod.GET
+	        httpMethod = HttpMethod.POST
 	)
 	public RestServiceResponse isRunning(){
-		return new RestServiceResponse("isRunning", this.mustContinue);
+		return new RestServiceResponse("isRunning", this.isStarted);
 	}
 	
 	private void manageFriends(){
@@ -56,11 +135,10 @@ public class ManageUsersService {
 		Thread thread = Thread.currentThread();
 		
 		synchronized(thread) {
-			while(this.mustContinue) {
-				System.out.println(count++);
+			while(this.isStarted) {
 				try {
-					Thread.currentThread().wait(50);
-				} catch (InterruptedException e) {
+					traitementPrincipal();
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

@@ -1,8 +1,4 @@
 package org.sogeti.service;
-
-import static com.googlecode.objectify.ObjectifyService.ofy;
-
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -97,14 +93,14 @@ public class TwitterService {
 	 * @return
 	 */
 	public List<User> getFollowersList(String screenName) {
-		LOGGER.log(Level.INFO,"Chargement des followers du user : "+ screenName);
+		
 		IDs result = null;
 		ArrayList<User> usersList = new ArrayList<User>();
 		
 		if (screenName == null) {
 			screenName = TwitterService.APP_ACCOUNT_SCREENNAME;
 		}
-		
+		LOGGER.log(Level.INFO,"Chargement des followers du user : "+ screenName);
 		long cursor = -1;
 		do { 	
 			try {

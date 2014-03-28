@@ -1,18 +1,21 @@
 package org.sogeti.service.rest;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class RestServiceResponse {
 	public String nomService;
-    public Boolean serviceRuning;
+    public String serviceRunning;
+    public List<String>  result;
 
-    public RestServiceResponse(String nomService, Boolean serviceRuning) {
+    public RestServiceResponse(String nomService, String serviceRunning, List<String> result) {
         this.nomService = nomService;
-        this.serviceRuning = serviceRuning;
+        this.serviceRunning = serviceRunning;
+        this.result = result;
     }
     
-
 	public String getNomService() {
 		return nomService;
 	}
@@ -21,12 +24,19 @@ public class RestServiceResponse {
 		this.nomService = nomService;
 	}
 
-	public Boolean getServiceRuning() {
-		return serviceRuning;
+	public String getServiceRunning() {
+		return serviceRunning;
 	}
 
-	public void setServiceRuning(Boolean serviceRuning) {
-		this.serviceRuning = serviceRuning;
+	public void setServiceRunning(String serviceRunning) {
+		this.serviceRunning = serviceRunning;
 	}
-	
+
+	public List<String> getResult() {
+		return result;
+	}
+
+	public void setResult(List<String> result) {
+		this.result = result;
+	}
 }

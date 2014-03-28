@@ -28,6 +28,14 @@ public class TwitterService {
 	private Twitter twitter;
 	
 	
+	public Twitter getTwitter() {
+		return twitter;
+	}
+
+	public void setTwitter(Twitter twitter) {
+		this.twitter = twitter;
+	}
+
 	private TwitterService() {
 		init();
 	}

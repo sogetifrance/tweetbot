@@ -125,7 +125,6 @@ public class TwitterManagerServlet extends HttpServlet {
 		}
 		
 		return reponse;
-		
 	}
 	
 	

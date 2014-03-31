@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Level;
 
 import org.sogeti.bo.UserBean;
 import org.sogeti.service.TwitterService;

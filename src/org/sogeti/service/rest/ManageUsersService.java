@@ -111,12 +111,6 @@ public class ManageUsersService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//on boucle sur les ids  et on les split par 100
-	
-		//on fait une pause pour pas cramer les quotats Twitter
-		
-		// on recupere les followers sous forme de Twiiter4J.user
-		
 		
 	}
 

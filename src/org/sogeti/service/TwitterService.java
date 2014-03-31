@@ -200,7 +200,12 @@ public class TwitterService {
 		do { 	
 			try {
 				result = twitter.getFriendsIDs(screenName, cursor);
-				
+				int startCurs=0;
+				while(startCurs<result.getIDs().length){
+					long[] tab = Arrays.copyOfRange(result.getIDs(), startCurs, startCurs+100);
+					usersList.addAll(twitter.lookupUsers(tab));
+					startCurs=startCurs+100;
+				}
 				cursor = result.getNextCursor();
 			} catch (TwitterException e) {
 				LOGGER.log(Level.SEVERE,"Twitter service or network is probably unavailable\n "+e.getMessage());
@@ -225,10 +230,28 @@ public class TwitterService {
 		if(!usersList.isEmpty()){
 			for (User user : usersList) {
 				UserBean ub = BeanMapper.getUserBeanFromUser(user);
-				userBeanMap.put(ub.getId(), ub);
+				userBeanMap.put(ub.getId().toString(), ub);
 			}
 		}
 		return userBeanMap;
+	}
+	
+	public void createFriendship(Long id) {
+		try {
+			twitter.createFriendship(id);
+
+		} catch (TwitterException e1) {
+			LOGGER.log(Level.SEVERE,"Twitter service or network is probably unavailable");
+		}
+	}
+
+	public void destroyFriendship(Long id) {
+		try {
+			twitter.destroyFriendship(id);
+
+		} catch (TwitterException e1) {
+			LOGGER.log(Level.SEVERE,e1.getMessage()+"\n" + e1.getCause()+"\nTwitter service or network is probably unavailable or Rate limit exceeded ");
+		}
 	}
 	
 	

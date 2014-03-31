@@ -13,7 +13,7 @@ public class UserBean {
 
 	//same as User
 	@Id
-	private String id;
+	private Long id;
 	private String name;
 	private String screenName;
 	private String description;
@@ -26,18 +26,18 @@ public class UserBean {
 	///specifique userBean
 	@Index
 	private Date friendSince;
-	private long lastScore;
-	
+	@Index
+	private boolean isDelete;	
 	
 
 	public UserBean() {
 		super();
 	}
 	
-	public String getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(String id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 	public String getName() {
@@ -94,12 +94,12 @@ public class UserBean {
 	public void setFriendSince(Date friendSince) {
 		this.friendSince = friendSince;
 	}
-	public long getLastScore() {
-		return lastScore;
+
+	public boolean isDelete() {
+		return isDelete;
 	}
-	public void setLastScore(long lastScore) {
-		this.lastScore = lastScore;
-	}
-	
-	
+
+	public void setDelete(boolean isDelete) {
+		this.isDelete = isDelete;
+	}	
 }

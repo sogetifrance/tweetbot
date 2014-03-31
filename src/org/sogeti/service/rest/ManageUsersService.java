@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 
+import org.sogeti.BeanMapper;
 import org.sogeti.bo.UserBean;
 import org.sogeti.service.TwitterService;
 
@@ -26,19 +27,22 @@ public class ManageUsersService {
 	private boolean isStarted = false;
 	private Map<String, UserBean> mapFriendUserBean;
 	private List<Long> followersIdList;
+	private List<Long> friendsIdList;
 
 	private void traitementPrincipal() {
 		// on recupere les friends et followers du user API
 		init();
 		// on nettoie la liste de friends
-		Map<String, UserBean> mapClean = clean();
+		clean();
 		// on boucle sur la map nettoyee
-		while (mapClean.size() < 2000) {
-			for (UserBean userBean : mapFriendUserBean.values()) {
-				findNewFriends(Long.parseLong(userBean.getId()));
+		for (UserBean userBean : mapFriendUserBean.values()) {
+			if (friendsIdList.size() < 2000) {
+				findNewFriends(userBean.getId());
+			} else {
+				break;
 			}
 		}
-
+		isStarted = false;
 	}
 
 	private void init() {
@@ -48,59 +52,66 @@ public class ManageUsersService {
 		// recherche des followers du user API
 		followersIdList = TwitterService.getInstance().getFollowersIDList(
 				TwitterService.APP_ACCOUNT_SCREENNAME);
+		friendsIdList = new ArrayList<Long>();
 	}
 
-	private Map<String, UserBean> clean() {
+	private void clean() {
 		// on boucle sur tous les friends et on nettoie
-		Map<String, UserBean> list = null;
-		return list;
+		for (UserBean friend : mapFriendUserBean.values()) {
+			friendsIdList = MajManager.maj(followersIdList, friendsIdList,
+					false, friend);
+		}
 	}
 
-	private void maj(Map<String, UserBean> cleanedMap, User user) {
-		// TODO
-	}
-
-	private void findNewFriends(long userId) {
+	private void findNewFriends(Long userId) {
 		Twitter twitter = TwitterService.getInstance().getTwitter();
 		try {
-			//recupération des 5000 premiers ids
+			// recupération des 5000 premiers ids
 			IDs ids = null;
+			boolean isFriend2000 = false;
 			do {
-				if(ids!= null && ids.getRateLimitStatus().getRemaining()==0) {
-						Thread.sleep(ids.getRateLimitStatus().getSecondsUntilReset()*1000 +5);
+				if (ids != null && ids.getRateLimitStatus().getRemaining() == 0) {
+					Thread.sleep(ids.getRateLimitStatus()
+							.getSecondsUntilReset() * 1000 + 5);
 				}
-				
-				if(ids == null){
-					//on recuperation des premiers 5000 ids
-					ids = twitter.getFollowersIDs(userId,-1);
-				}else{
-					//recupération des ids au delà des 50000 premiers
-					ids = twitter.getFollowersIDs(userId,ids.getNextCursor());
+
+				if (ids == null) {
+					// on recuperation des premiers 5000 ids
+					ids = twitter.getFollowersIDs(userId, -1);
+				} else {
+					// recupération des ids au delà des 50000 premiers
+					ids = twitter.getFollowersIDs(userId, ids.getNextCursor());
 				}
-				
-				//à partir des ids, on recupère de vrais users 100 par 100
+
+				// à partir des ids, on recupère de vrais users 100 par 100
 				long[] ids5000 = ids.getIDs();
-				int startCurs=0;
+				int startCurs = 0;
 				ResponseList<User> newUserList100 = null;
-				while(startCurs<ids5000.length){
-					long[] tab = Arrays.copyOfRange(ids5000, startCurs, startCurs+100);
+				while (startCurs < ids5000.length && !isFriend2000) {
+					long[] tab = Arrays.copyOfRange(ids5000, startCurs,
+							startCurs + 100);
 					newUserList100 = twitter.lookupUsers(tab);
-					//on pause pour pas bouuffer la limite imposer par Twitter
-					Thread.sleep(newUserList100.getRateLimitStatus().getSecondsUntilReset()*1000/newUserList100.getRateLimitStatus().getRemaining());
+					// on pause pour pas bouuffer la limite imposer par Twitter
+					Thread.sleep(newUserList100.getRateLimitStatus()
+							.getSecondsUntilReset()
+							* 1000
+							/ newUserList100.getRateLimitStatus()
+									.getRemaining());
 					for (User user : newUserList100) {
-						//on teste si le user peut être ajouter ou non
+						// on teste si le user peut être ajouter ou non
+						if (friendsIdList.size() < 2000) {
+							friendsIdList = MajManager.maj(followersIdList,
+									friendsIdList, true,
+									BeanMapper.getUserBeanFromUser(user));
+						} else {
+							isFriend2000 = true;
+							break;
+						}
 					}
-					startCurs=startCurs+100;
+					startCurs = startCurs + 100;
 				}
-					
-				//TODO
-			
-				
-				
-			} while (ids != null && ids.hasNext());
-			
-			
-			
+			} while (ids != null && ids.hasNext() && !isFriend2000);
+
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -111,7 +122,7 @@ public class ManageUsersService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	@ApiMethod(path = "start", httpMethod = HttpMethod.POST
@@ -162,7 +173,7 @@ public class ManageUsersService {
 		Thread thread = Thread.currentThread();
 
 		synchronized (thread) {
-			while (this.isStarted) {
+			if (this.isStarted) {
 				try {
 					traitementPrincipal();
 				} catch (Exception e) {

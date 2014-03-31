@@ -1,11 +1,10 @@
-package org.sogeti;
+package org.sogeti.service;
 
-import org.sogeti.service.TwitterService;
 
 public class ScoreService {
 	
 	
-	public boolean isScoreOk(String description){
+	public static boolean isScoreOk(String description){
 		long scoreOk = Integer.parseInt(TwitterService.PROP.getProperty("scoreOk"));
 		if(getScore(description) >= scoreOk){
 			return true;
@@ -20,7 +19,7 @@ public class ScoreService {
 	 * @param userBean
 	 * @return
 	 */
-	private static long getScore(String description) {
+	public static long getScore(String description) {
 		long score = 0;
 		description = description.toLowerCase();
 		//Calcul du score sur mots de niveau 1

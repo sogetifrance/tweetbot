@@ -3,7 +3,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -176,6 +178,7 @@ public class TwitterService {
 		return usersIdList;
 		
 	}
+
 	
  	
 	/**
@@ -197,12 +200,7 @@ public class TwitterService {
 		do { 	
 			try {
 				result = twitter.getFriendsIDs(screenName, cursor);
-				int startCurs=0;
-				while(startCurs<result.getIDs().length){
-					long[] tab = Arrays.copyOfRange(result.getIDs(), startCurs, startCurs+100);
-					usersList.addAll(twitter.lookupUsers(tab));
-					startCurs=startCurs+100;
-				}
+				
 				cursor = result.getNextCursor();
 			} catch (TwitterException e) {
 				LOGGER.log(Level.SEVERE,"Twitter service or network is probably unavailable\n "+e.getMessage());
@@ -214,7 +212,24 @@ public class TwitterService {
 	}
 	
 	
-	
+	/**
+	 * Retourne la liste des friends sous forme de UserBean potentiellement
+	 * cette methode explose les quotats twitter et retourne une liste incomplete
+	 * @param screenName (si non renseigné le user TwitterService.APP_ACCOUNT_SCREENNAME est utilisé.
+	 * @return
+	 */
+	public Map<String,UserBean> getFriendsUserBeanMap(String screenName){
+		
+		Map<String,UserBean> userBeanMap = new HashMap<String,UserBean>();
+		List<User> usersList = this.getFriendsList(screenName);
+		if(!usersList.isEmpty()){
+			for (User user : usersList) {
+				UserBean ub = BeanMapper.getUserBeanFromUser(user);
+				userBeanMap.put(ub.getId(), ub);
+			}
+		}
+		return userBeanMap;
+	}
 	
 	
 }

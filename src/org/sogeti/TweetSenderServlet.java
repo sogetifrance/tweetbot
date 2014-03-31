@@ -52,7 +52,12 @@ public class TweetSenderServlet extends HttpServlet {
 					"Le user de destination ne peut pas être vide");
 			req.setAttribute("message", message);
 			req.setAttribute("userTest", userTest);
-		} else if (userTest.equals("allUsers")) {
+		} else if (message.isEmpty()) {
+			req.setAttribute("erreurMessage",
+					"Le message a envoyé ne peut pas être vide");
+			req.setAttribute("message", message);
+			req.setAttribute("userTest", userTest);
+		}  else if (userTest.equals("allUsers")) {
 			// envoi du message a tous les followers
 			// appel e service rest
 			callSendDirectMessage(message);

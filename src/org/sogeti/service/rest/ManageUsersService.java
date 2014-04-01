@@ -62,6 +62,8 @@ public class ManageUsersService {
 					false, friend);
 		}
 	}
+	
+	//TODO faire méthode maj
 
 	private void findNewFriends(Long userId) {
 		Twitter twitter = TwitterService.getInstance().getTwitter();

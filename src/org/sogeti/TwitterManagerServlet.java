@@ -1,8 +1,7 @@
 package org.sogeti;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,30 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.sogeti.bo.UserBean;
-import org.sogeti.service.rest.RestServiceResponse;
+import org.sogeti.service.rest.ManageUsersService;
 
+import com.google.appengine.api.ThreadManager;
 import com.googlecode.objectify.ObjectifyService;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.json.impl.provider.entity.JSONObjectProvider;
-import com.sun.jersey.json.impl.provider.entity.JSONRootElementProvider;
-
 
 @SuppressWarnings("serial")
 public class TwitterManagerServlet extends HttpServlet {
 
 	private static Logger LOGGER = Logger.getLogger(TwitterManagerServlet.class
 			.toString());
-	
-	private static String START_SERVICE_ENDPOINT="v1/start";
-	private static String STOP_SERVICE_ENDPOINT="v1/stop";
-	private static String ISRUNNING_SERVICE_ENDPOINT="v1/isRunning";
-	
 
+	private ManageUsersService manageService;
 	static {
 		ObjectifyService.register(UserBean.class); // Fait connaître votre
 													// classe-entité à Objectify
@@ -44,8 +31,8 @@ public class TwitterManagerServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		LOGGER.log(Level.INFO, "Entree servlet TwitterManagerServlet");
-		req.setAttribute("isRunning", isRunnningService().contains("true")?"true":"false");
-		
+		req.setAttribute("isRunning", String.valueOf(isRunningService()));
+
 		try {
 			this.getServletContext()
 					.getRequestDispatcher("/WEB-INF/jsp/twitterManager.jsp")
@@ -57,22 +44,20 @@ public class TwitterManagerServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-	
+
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-		String isRunning = req.getParameter("isRunning");
+			throws ServletException, IOException {
 		String typeSubmit = req.getParameter("typeSubmit");
-		if(typeSubmit==null) {
-			isRunning=isRunnningService().contains("true")?"true":"false";
-		} else if(typeSubmit.equals("start")){
-			startService();
-		} else if(typeSubmit.equals("stop")){
-			stopService();
-		} else {
-			isRunning=isRunnningService().contains("true")?"true":"false";
+		if (typeSubmit != null) {
+			if (typeSubmit.equals("start")) {
+				startService(req);
+			} else if (typeSubmit.equals("stop")) {
+				stopService();
+			}
 		}
-		isRunning=isRunnningService().contains("true")?"true":"false";
-		req.setAttribute("isRunning", isRunning);
+		
+		req.setAttribute("isRunning", String.valueOf(this.isRunningService()));
+		
 		try {
 			this.getServletContext()
 					.getRequestDispatcher("/WEB-INF/jsp/twitterManager.jsp")
@@ -84,48 +69,37 @@ public class TwitterManagerServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-	
-	private String startService() {
-		 return callRestService(START_SERVICE_ENDPOINT);
-	}
-	
-	private String stopService() {
-		 return callRestService(STOP_SERVICE_ENDPOINT);
-	}
-	
-	private String isRunnningService() {
-		 return callRestService(ISRUNNING_SERVICE_ENDPOINT);
-	}
 
-	private String callRestService(String action) {
+	private void startService(HttpServletRequest req) {
+		if (!isRunningService()) {
+			try {
+				Runnable send = new Runnable() {
+					public void run() {
+						manageService = new ManageUsersService();
+						manageService.traitementPrincipal();
+					}
+				};
 
-		String reponse = "";
-		try {
-
-			ClientConfig clientConfig = new DefaultClientConfig();
-			clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-			Client client = Client.create(clientConfig);
-			WebResource webResource = client
-					.resource("http://localhost:8888/_ah/api/manageUsers/"+action);
-
-			ClientResponse response = webResource.type("application/json")
-					.post(ClientResponse.class);
-
-			if (response.getStatus() != 200) {
-				throw new RuntimeException(
-						" Erreur lors de l'appel du service "+action+" : "
-								+ response.getStatus());
+				ThreadFactory threadFactory = ThreadManager
+						.backgroundThreadFactory();
+				Thread thread = threadFactory.newThread(send);
+				thread.start();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-
-			reponse = response
-					.getEntity(String.class);
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		} else {
+			req.setAttribute("erreurMessage",
+					"Le service est déjà démarré");
 		}
-		
-		return reponse;
+
 	}
-	
-	
+
+	private void stopService() {
+		manageService.stopManagement();
+	}
+
+	private boolean isRunningService() {
+		return (manageService!=null && manageService.isRunning());
+	}
 }

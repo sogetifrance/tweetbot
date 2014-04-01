@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadFactory;
 
 import org.sogeti.BeanMapper;
 import org.sogeti.bo.UserBean;
@@ -16,12 +15,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
-import com.google.api.server.spi.config.Api;
-import com.google.api.server.spi.config.ApiMethod;
-import com.google.api.server.spi.config.ApiMethod.HttpMethod;
-import com.google.appengine.api.ThreadManager;
 
-@Api(name = "manageUsers", description = "permet de controler le traitement de reactualisation des friends")
 public class ManageUsersService {
 
 	private boolean isStarted = false;
@@ -29,19 +23,32 @@ public class ManageUsersService {
 	private List<Long> followersIdList;
 	private List<Long> friendsIdList;
 
-	private void traitementPrincipal() {
+	public void traitementPrincipal() {
 		// on recupere les friends et followers du user API
-		init();
-		// on nettoie la liste de friends
-		clean();
-		// on boucle sur la map nettoyee
-		for (UserBean userBean : mapFriendUserBean.values()) {
-			if (friendsIdList.size() < 2000) {
-				findNewFriends(userBean.getId());
-			} else {
-				break;
+		isStarted = true;
+		try {
+			for (int i = 1; i < 12; i++) {
+				Thread.currentThread().sleep(60000);
+				System.out.println(i+ " minute(s) de traitement");
 			}
+			
+			
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		System.out.println("service tterminé");
+//		init();
+//		// on nettoie la liste de friends
+//		clean();
+//		// on boucle sur la map nettoyee
+//		for (UserBean userBean : mapFriendUserBean.values()) {
+//			if (friendsIdList.size() < 2000) {
+//				findNewFriends(userBean.getId());
+//			} else {
+//				break;
+//			}
+//		}
 		isStarted = false;
 	}
 
@@ -87,7 +94,7 @@ public class ManageUsersService {
 				long[] ids5000 = ids.getIDs();
 				int startCurs = 0;
 				ResponseList<User> newUserList100 = null;
-				while (startCurs < ids5000.length && !isFriend2000) {
+				while (isStarted && startCurs < ids5000.length && !isFriend2000) {
 					long[] tab = Arrays.copyOfRange(ids5000, startCurs,
 							startCurs + 100);
 					newUserList100 = twitter.lookupUsers(tab);
@@ -110,7 +117,7 @@ public class ManageUsersService {
 					}
 					startCurs = startCurs + 100;
 				}
-			} while (ids != null && ids.hasNext() && !isFriend2000);
+			} while (isStarted && ids != null && ids.hasNext() && !isFriend2000);
 
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
@@ -125,64 +132,16 @@ public class ManageUsersService {
 
 	}
 
-	@ApiMethod(path = "start", httpMethod = HttpMethod.POST
 
-	)
-	public RestServiceResponse startManagement() {
-		if (!this.isStarted) {
-			this.isStarted = true;
-			try {
-				Runnable manage = new Runnable() {
-					public void run() {
-						manageFriends();
-					}
-				};
-
-				ThreadFactory threadFactory = ThreadManager
-						.backgroundThreadFactory();
-				Thread thread = threadFactory.newThread(manage);
-				thread.start();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				this.isStarted = false;
-			}
-		}
-		return new RestServiceResponse("startManagement",
-				String.valueOf(this.isStarted), new ArrayList<String>());
-	}
-
-	@ApiMethod(path = "stop", httpMethod = HttpMethod.POST)
-	public RestServiceResponse stopManagement() {
+	public void stopManagement() {
 
 		if (this.isStarted) {
 			this.isStarted = false;
 		}
-		return new RestServiceResponse("stopManagement",
-				String.valueOf(this.isStarted), new ArrayList<String>());
 	}
 
-	@ApiMethod(path = "isRunning", httpMethod = HttpMethod.POST)
-	public RestServiceResponse isRunning() {
-		return new RestServiceResponse("isRunning",
-				String.valueOf(this.isStarted), new ArrayList<String>());
-	}
-
-	private void manageFriends() {
-		int count = 1;
-		Thread thread = Thread.currentThread();
-
-		synchronized (thread) {
-			if (this.isStarted) {
-				try {
-					traitementPrincipal();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-
+	public boolean isRunning() {
+		return this.isStarted;
 	}
 
 }

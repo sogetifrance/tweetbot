@@ -50,7 +50,7 @@
 		<servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
 		<init-param>
 			<param-name>services</param-name>
-			<param-value>org.sogeti.service.rest.ManageUsersService,org.sogeti.service.rest.TweetSenderService</param-value>
+			<param-value>org.sogeti.service.rest.TweetSenderService</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>

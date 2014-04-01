@@ -17,11 +17,11 @@
 	<c:out value="Bonjour" />
 	<br />
 	<c:choose>
-		<c:when test="${isRunning=='true'}">le service est lancé </c:when>
+		<c:when test="${isRunning=='true'}">le service est lancé ${nbForTest}</c:when>
 		<c:when test="${isRunning=='false'}">le service est eteint </c:when>
 		<c:when test="${isRunning=='erreur'}">le service est en erreur </c:when>
 	</c:choose>
-
+	<p><strong>${erreurMessage}</strong></p>
 	<form name="manageServiceForm" method="post">
 		<table border=0>
 			<tr>
@@ -33,9 +33,10 @@
 					style="width: 200px;" value="arreter"
 					onclick="callServlet(this.form,'stop');" /></td>
 					
-				<td><input type="button" name="refresh" class="button"
+				<td><input type="button" name="getNumber" class="button"
 					style="width: 200px;" value="refresh"
-					onclick="callServlet(this.form,'refresh');" /></td>
+					onclick="callServlet(this.form,'getNumber');" /></td>
+					
 					
 				<td><input id="typeSubmit" type="hidden" name="typeSubmit" /></td>
 				<td><input id="isRunning" type="hidden" name="isRunning" value="${isRunning}"/></td>

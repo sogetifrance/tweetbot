@@ -1,76 +1,113 @@
 package org.sogeti.service.rest;
 
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.sogeti.bo.UserBean;
 import org.sogeti.service.ScoreService;
 import org.sogeti.service.TwitterService;
 
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.Result;
+
 public class MajManager {
 
-	
-	public static List<Long> maj(List<Long> followersIds, List<Long> friendIds, boolean isNew, UserBean user){
-		if(isNew && !isFriend(friendIds, user.getId())){
-			if(isfollower(followersIds, user.getId())){
-				majBdd(user);
-			}
-			else{
-				if(!getScoreOk(user.getDescription())){
-					majBdd(user);
+	public static List<Long> maj(List<Long> followersIds, List<Long> friendIds,
+			boolean isNew, UserBean user) {
+		// On regarde si c'est potentiellement un nouveau friend et si il n'est
+		// pas déjà un friends du compte
+		if (!user.getScreenName().equals(TwitterService.APP_ACCOUNT_SCREENNAME)) {
+			if (!isNew || (isNew && !isFriend(friendIds, user.getId()))) {
+				// On regarde si le user n'est pas déjà un des follower du
+				// compte.
+				if (isfollower(followersIds, user.getId())) {
+					// Si oui on passe le user en delete
+					user.setDelete(true);
+				} else {
+					// On regarde si son score est bon
+					if (!getScoreOk(user.getDescription())) {
+						// Si non on passe le user en delete
+						user.setDelete(true);
+					}
 				}
+				// On regarde si le user existe déjà dans la base
+				Objectify ofy = ObjectifyService.ofy();
+				UserBean userBdd = ofy.load().type(UserBean.class)
+						.id(user.getId()).now();
+				if (userBdd != null) {
+					// Si oui On regarde si c'est un user delete en bdd
+					if (userBdd.isDelete()) {
+						user.setDelete(true);
+					}
+					// On regarde si les user sont identique
+					if (user.isDelete()) {
+						// Si non on fait une maj en bdd
+						majBdd(user, userBdd);
+					}
+				} else {
+					if (!user.isDelete()) {
+						user.setFriendSince(Calendar.getInstance().getTime());
+					}
+					// Si non on fait une maj en bdd
+					majBdd(user, null);
+				}
+				// On regarde si c'est potentiellement un nouveau friend
+				if (isNew) {
+					// Si oui On regarde si c'est un user delete
+					if (!user.isDelete()) {
+						// Si non on l'ajoute au amis du compte
+						TwitterService.getInstance().createFriendship(
+								user.getId());
+						friendIds.add(user.getId());
+					}
+				} else {
+					// Si non on regarde si c'est un user delete
+					if (user.isDelete()) {
+						// Si oui on suprime le friend du compte.
+						TwitterService.getInstance().destroyFriendship(
+								user.getId());
+					} else {
+						friendIds.add(user.getId());
+					}
+				}
+
 			}
-			//TODO Recuperer en base
-//			if(userFriends.containsKey(user.getId())){
-//				UserBean userBdd = userFriends.get(user.getId());
-//				//TODO voir si c'est bien ce paramétre a tester si il a dejé était delete
-//				if(userBdd.getStatusesCount()==0){
-//					//Todo MAJ Friends
-//				}
-//				if(user!=userBdd){
-//					majBdd(user);
-//				}
-//			}
-//			else{
-//				majBdd(user);
-//			}
-			if(isNew){
-				//if(user.getStatusesCount()!=0){
-					TwitterService.getInstance().createFriendship(user.getId());
-				//}
-			}
-			else{
-				//if(user.getStatusesCount()==0){
-					//TwitterService.getInstance().destroyFriendship(user.getId());
-				//}
-			}
-			
 		}
 		return friendIds;
 	}
-	
-	private static boolean isFriend(List<Long> userFriendIds, Long id){
-		if(userFriendIds.contains(id)){
+
+	// Permet de regarder si le user est déjà friend
+	private static boolean isFriend(List<Long> userFriendIds, Long id) {
+		if (userFriendIds.contains(id)) {
 			return true;
-		}
-		else{
+		} else {
 			return false;
 		}
 	}
-	
-	private static boolean isfollower(List<Long> followersIds, Long id){
-		if(followersIds.contains(id)){
+
+	// Permet de regarder si le user est déjà follower
+	private static boolean isfollower(List<Long> followersIds, Long id) {
+		if (followersIds.contains(id)) {
 			return true;
-		}
-		else{
+		} else {
 			return false;
 		}
 	}
-	
-	private static void majBdd(UserBean user){
-		//TODO
+
+	// Permet de faire la maj en BDD
+	private static void majBdd(UserBean user, UserBean userBdd) {
+		if (userBdd != null) {
+			user.setFriendSince(userBdd.getFriendSince());
+		}
+		Objectify ofy = ObjectifyService.ofy();
+		ofy.save().entities(user);
 	}
-	
-	private static boolean getScoreOk(String description){
+
+	// Permet de calculer le score d'un user par rapport à sa description
+	private static boolean getScoreOk(String description) {
 		return ScoreService.isScoreOk(description);
 	}
 }

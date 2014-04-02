@@ -27,7 +27,7 @@ public class UserBean {
 	@Index
 	private Date friendSince;
 	@Index
-	private boolean isDelete;	
+	private boolean isDelete = false;	
 	
 
 	public UserBean() {

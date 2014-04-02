@@ -76,7 +76,6 @@ public class ManageUsersService {
 					Thread.sleep(ids.getRateLimitStatus()
 							.getSecondsUntilReset() * 1000 + 5);
 				}
-
 				if (ids == null) {
 					// on recuperation des premiers 5000 ids
 					ids = twitter.getFollowersIDs(userId, -1);
@@ -84,7 +83,6 @@ public class ManageUsersService {
 					// recupération des ids au delà des 50000 premiers
 					ids = twitter.getFollowersIDs(userId, ids.getNextCursor());
 				}
-
 				// à partir des ids, on recupère de vrais users 100 par 100
 				long[] ids5000 = ids.getIDs();
 				int startCurs = 0;
@@ -111,6 +109,10 @@ public class ManageUsersService {
 						}
 					}
 					startCurs = startCurs + 100;
+					// TODO A voir si vraiment néccéssaire évite 1 traitement en +
+					if (!(friendsIdList.size() < 2000)) {
+						isFriend2000 = true;
+					} 
 				}
 			} while (ids != null && ids.hasNext() && !isFriend2000);
 

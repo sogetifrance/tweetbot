@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jasper.tagplugins.jstl.core.Param;
+import org.sogeti.bo.ParamBean;
 import org.sogeti.bo.UserBean;
 import org.sogeti.service.rest.RestServiceResponse;
 
@@ -38,6 +40,11 @@ public class TwitterManagerServlet extends HttpServlet {
 
 	static {
 		ObjectifyService.register(UserBean.class); // Fait connaître votre
+													// classe-entité à Objectify
+	}
+	
+	static {
+		ObjectifyService.register(ParamBean.class); // Fait connaître votre
 													// classe-entité à Objectify
 	}
 

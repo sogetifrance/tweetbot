@@ -27,6 +27,7 @@ public class ParamBean {
 
 	public ParamBean() {
 		super();
+		setId(Long.parseLong("1"));		
 	}
 
 	public Long getId() {

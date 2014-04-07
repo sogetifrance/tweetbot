@@ -1,7 +1,5 @@
 package org.sogeti.service.rest;
 
-import java.sql.Date;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -11,7 +9,6 @@ import org.sogeti.service.TwitterService;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.Result;
 
 public class MajManager {
 
